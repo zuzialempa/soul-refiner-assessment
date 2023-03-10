@@ -10,14 +10,14 @@ import { isEmpty } from '@utils/util';
 class AuthService {
   public users = new PrismaClient().user;
 
-  public async signup(userData: CreateUserDto): Promise<User> {
+  public async signup(userData: CreateUserDto): Promise<Omit<User, 'password'>> {
     if (isEmpty(userData)) throw new HttpException(400, "userData is empty");
 
     const findUser: User = await this.users.findUnique({ where: { email: userData.email } });
     if (findUser) throw new HttpException(409, `This email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);
-    const createUserData: Promise<User> = this.users.create({ data: { ...userData, password: hashedPassword } });
+    const createUserData: Promise<Omit<User, 'password'>> = this.users.create({ data: { ...userData, password: hashedPassword }, select: { id: true, email: true } });
 
     return createUserData;
   }
@@ -31,16 +31,18 @@ class AuthService {
     const isPasswordMatching: boolean = await compare(userData.password, findUser.password);
     if (!isPasswordMatching) throw new HttpException(409, "Password is not matching");
 
+    delete findUser.password;
+
     const tokenData = this.createToken(findUser);
     const cookie = this.createCookie(tokenData);
 
     return { cookie, findUser };
   }
 
-  public async logout(userData: User): Promise<User> {
+  public async logout(userData: User): Promise<Omit<User, 'password'>> {
     if (isEmpty(userData)) throw new HttpException(400, "userData is empty");
 
-    const findUser: User = await this.users.findFirst({ where: { email: userData.email, password: userData.password } });
+    const findUser: Omit<User, 'password'> = await this.users.findFirst({ where: { email: userData.email, password: userData.password }, select: { id: true, email: true } });
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
     return findUser;
