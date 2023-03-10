@@ -33,6 +33,7 @@ services:
       - mysql
     environment: 
       DATABASE_URL: "mysql://root:password@mysql:3306/test"
+    command: sh ./wait-for-it
   mysql:
     image: mysql:5.7
     container_name: mysql

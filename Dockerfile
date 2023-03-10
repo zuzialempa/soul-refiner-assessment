@@ -5,6 +5,8 @@ COPY . ./app
 
 WORKDIR /app
 
+RUN apk add mysql-client
+
 RUN npm install
 
 EXPOSE 3000
