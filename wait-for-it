@@ -1,9 +1,8 @@
 #! bin/bash
 set -u;
 
-while [[ $( mysql -u root -h mysql --password=password -e 'use test' ) ]]; do 
-  sleep 2; 
-  echo "Attempting to connect to MySQL database";
-done; 
+while ! mysqladmin ping -h"mysql" --silent; do
+    sleep 1
+done
 
 npm run dev;
